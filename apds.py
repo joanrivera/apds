@@ -40,6 +40,15 @@ def ejecutar_comando(shellcmd):
         segundos_transcurridos += 1
 
 
+def get_running_containers(docker_path):
+    shellcmd = '{docker_path} ps --no-trunc --format "{{{{.Names}}}}\t{{{{.Ports}}}}\t{{{{.Mounts}}}}"'.format(
+        docker_path=docker_path
+    )
+    p = subprocess.Popen(shlex.split(shellcmd), stdout=subprocess.PIPE)
+
+    return p.communicate()[0].split('\n')
+
+
 class Config(object):
     def __init__(self):
         self.port = '8080'
@@ -164,6 +173,30 @@ def logs(config, follow, clear):
         subprocess.call(shlex.split(shellcmd))
 
 
+##########
+#  List  #
+##########
+
+@click.command()
+@pass_config
+def list_servers(config):
+    '''Lista los servidores en ejecución'''
+    click.echo('{:10}{}'.format('PUERTO', 'DIRECTORIO'))
+    contenedores = get_running_containers(config.docker_path)
+    for contenedor in contenedores:
+        if contenedor.strip() == '':
+            continue
+        nombre, puertos, directorios = contenedor.split('\t')
+        if nombre.startswith('apds'):
+            puertos = puertos.split(',')
+            for puerto in puertos:
+                puerto = puerto.strip()
+                if puerto.endswith('->80/tcp'):
+                    puerto = puerto.split('->80/tcp')[0]
+                    puerto = puerto.split(':')[1]
+            click.echo('{:10}{}'.format(puerto, directorios))
+
+
 
 cli.add_command(start)
 cli.add_command(stop)
@@ -171,3 +204,4 @@ cli.add_command(restart)
 
 cli.add_command(run)
 cli.add_command(logs)
+cli.add_command(list_servers, 'list')
