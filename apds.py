@@ -145,7 +145,23 @@ def run(config, comando):
 @pass_config
 def logs(config, follow, clear):
     '''Muestra el log de errores de PHP'''
-    click.echo('Not implemented yet')
+    log_path = '/var/log/php_errors.log'
+    if clear:
+        comando = 'echo "" > {}'.format(log_path)
+        shellcmd = '{docker_path} exec -it apds{port} {comando}'.format(
+            docker_path=config.docker_path,
+            port=config.port,
+            comando=comando
+        )
+    else:
+        follow = '-f' if follow == True else ''
+        comando = 'tail {} {}'.format(follow, log_path)
+        shellcmd = '{docker_path} exec -it apds{port} {comando}'.format(
+            docker_path=config.docker_path,
+            port=config.port,
+            comando=comando
+        )
+        subprocess.call(shlex.split(shellcmd))
 
 
 
