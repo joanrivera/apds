@@ -4,11 +4,46 @@ import click
 
 import os
 import subprocess
+import shlex
+import time
+
+
+
+def ejecutar_comando(shellcmd):
+    p = subprocess.Popen(
+        shlex.split(shellcmd),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT
+    )
+    segundos_transcurridos = 0
+    click.echo(' ', nl=False)
+    while(True):
+        poll = p.poll()
+        if poll == None:
+            click.echo('.', nl=False)
+            if segundos_transcurridos > 20:
+                p.kill()
+                click.echo(click.style(' Falló', fg='red'))
+
+                return -1
+        else:
+            if poll != 0:
+                click.echo(click.style(' Falló', fg='red'))
+
+                return -1
+            click.echo(click.style(' Ok', fg='green'))
+
+            return 0
+
+        time.sleep(1)
+
+        segundos_transcurridos += 1
 
 
 class Config(object):
     def __init__(self):
         self.port = '8080'
+        self.docker_path = '/usr/bin/docker'
         self.docker_image = 'ccf/php:dev'
 
 pass_config = click.make_pass_decorator(Config, ensure=True)
@@ -37,14 +72,15 @@ def cli(config, port):
 @pass_config
 def start(config, document_root):
     '''Inicia el servidor'''
-    click.echo('Iniciando servidor en puerto %s' % config.port)
+    click.echo('Iniciando servidor en puerto %s' % config.port, nl=False)
     droot_expanded = os.path.abspath(os.path.expanduser(document_root))
-    shellcmd = 'docker run  -d  -p {port}:80  -v {document_root}:/var/www/html --name=apds{port} {docker_image}'.format(
+    shellcmd = '{docker_path} run -d -p {port}:80 -v {document_root}:/var/www/html --name=apds{port} {docker_image}'.format(
+        docker_path=config.docker_path,
         port=config.port,
         document_root=droot_expanded,
         docker_image=config.docker_image
     )
-    subprocess.Popen(shellcmd)
+    ejecutar_comando(shellcmd)
 
 
 ##########
@@ -55,11 +91,12 @@ def start(config, document_root):
 @pass_config
 def stop(config):
     '''Detiene el servidor'''
-    click.echo('Deteniendo servidor')
-    shellcmd = 'docker rm -f apds{port}'.format(
+    click.echo('Deteniendo servidor', nl=False)
+    shellcmd = '{docker_path} rm -f apds{port}'.format(
+        docker_path=config.docker_path,
         port=config.port
     )
-    subprocess.Popen(shellcmd)
+    ejecutar_comando(shellcmd)
 
 
 #############
@@ -70,11 +107,12 @@ def stop(config):
 @pass_config
 def restart(config):
     '''Reinicia el servidor'''
-    click.echo('Reiniciando servidor')
-    shellcmd = 'docker restart apds{port}'.format(
+    click.echo('Reiniciando servidor', nl=False)
+    shellcmd = '{docker_path} restart apds{port}'.format(
+        docker_path=config.docker_path,
         port=config.port
     )
-    subprocess.Popen(shellcmd)
+    ejecutar_comando(shellcmd)
 
 
 #########
@@ -86,12 +124,13 @@ def restart(config):
 @pass_config
 def run(config, comando):
     '''Ejecuta un comando que esté disponible dentro del contenedor del servidor'''
-    click.echo('Ejecutando %s' % comando)
-    shellcmd = 'docker exec -it apds{port} {comando}'.format(
+    click.echo('Ejecutando: %s' % comando)
+    shellcmd = '{docker_path} exec -it apds{port} {comando}'.format(
+        docker_path=config.docker_path,
         port=config.port,
         comando=comando
     )
-    subprocess.Popen(shellcmd)
+    subprocess.call(shlex.split(shellcmd))
 
 
 ##########
