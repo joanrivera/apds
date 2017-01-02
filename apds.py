@@ -193,8 +193,11 @@ def logs(config, follow, clear):
 @pass_config
 def list_servers(config):
     '''Lista los servidores en ejecución'''
-    click.echo('{:10}{}'.format('PUERTO', 'DIRECTORIO'))
-    contenedores = get_running_containers(config.docker_path)
+    contenedores = get_running_servers(config.docker_path)
+    if len(contenedores) > 0:
+        click.echo('{:10}{}'.format('PUERTO', 'DIRECTORIO'))
+    else:
+        click.echo(u'No hay servidores en ejecución')
     for nombre in contenedores.keys():
         puertos, directorios = contenedores[nombre]
         if nombre.startswith('apds'):
