@@ -40,13 +40,25 @@ def ejecutar_comando(shellcmd):
         segundos_transcurridos += 1
 
 
-def get_running_containers(docker_path):
+def get_running_servers(docker_path):
     shellcmd = '{docker_path} ps --no-trunc --format "{{{{.Names}}}}\t{{{{.Ports}}}}\t{{{{.Mounts}}}}"'.format(
         docker_path=docker_path
     )
     p = subprocess.Popen(shlex.split(shellcmd), stdout=subprocess.PIPE)
 
-    return p.communicate()[0].split('\n')
+    contenedores = p.communicate()[0].split('\n')
+
+    container_data = {}
+
+    for contenedor in contenedores:
+        if contenedor.strip() == '':
+            continue
+        data = contenedor.split('\t')
+        nombre = data.pop(0)
+        if nombre.startswith('apds'):
+            container_data[nombre] = data
+
+    return container_data
 
 
 class Config(object):
@@ -183,10 +195,8 @@ def list_servers(config):
     '''Lista los servidores en ejecución'''
     click.echo('{:10}{}'.format('PUERTO', 'DIRECTORIO'))
     contenedores = get_running_containers(config.docker_path)
-    for contenedor in contenedores:
-        if contenedor.strip() == '':
-            continue
-        nombre, puertos, directorios = contenedor.split('\t')
+    for nombre in contenedores.keys():
+        puertos, directorios = contenedores[nombre]
         if nombre.startswith('apds'):
             puertos = puertos.split(',')
             for puerto in puertos:
