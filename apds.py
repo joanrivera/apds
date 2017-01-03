@@ -40,9 +40,10 @@ def ejecutar_comando(shellcmd):
         segundos_transcurridos += 1
 
 
-def get_running_servers(docker_path):
-    shellcmd = '{docker_path} ps --no-trunc --format "{{{{.Names}}}}\t{{{{.Ports}}}}\t{{{{.Mounts}}}}"'.format(
-        docker_path=docker_path
+def get_running_servers(docker_path, docker_image):
+    shellcmd = '{docker_path} ps --no-trunc --format "{{{{.Names}}}}\t{{{{.Ports}}}}\t{{{{.Mounts}}}}" --filter ancestor={docker_image}'.format(
+        docker_path=docker_path,
+        docker_image=docker_image
     )
     p = subprocess.Popen(shlex.split(shellcmd), stdout=subprocess.PIPE)
 
@@ -193,7 +194,7 @@ def logs(config, follow, clear):
 @pass_config
 def list_servers(config):
     '''Lista los servidores en ejecución'''
-    contenedores = get_running_servers(config.docker_path)
+    contenedores = get_running_servers(config.docker_path, config.docker_image)
     if len(contenedores) > 0:
         click.echo('{:10}{}'.format('PUERTO', 'DIRECTORIO'))
     else:
