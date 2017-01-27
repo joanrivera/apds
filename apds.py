@@ -177,7 +177,9 @@ def logs(config, follow, clear):
         )
     else:
         follow = '-f' if follow == True else ''
-        comando = 'tail {} {}'.format(follow, log_path)
+        comando = 'bash -c "tail {} {} | log-colorizer"'.format(
+            follow, log_path
+        )
         shellcmd = '{docker_path} exec -it apds{port} {comando}'.format(
             docker_path=config.docker_path,
             port=config.port,
