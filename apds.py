@@ -9,29 +9,35 @@ import time
 
 
 
-def ejecutar_comando(shellcmd):
+def ejecutar_comando(shellcmd, verbose=True):
     p = subprocess.Popen(
         shlex.split(shellcmd),
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT
     )
     segundos_transcurridos = 0
-    click.echo(' ', nl=False)
+    if verbose:
+        click.echo(' ', nl=False)
     while(True):
         poll = p.poll()
         if poll == None:
-            click.echo('.', nl=False)
+            if verbose:
+                click.echo('.', nl=False)
             if segundos_transcurridos > 20:
                 p.kill()
-                click.echo(click.style(' Falló', fg='red'))
+                if verbose:
+                    click.echo(click.style(' Falló', fg='red'))
 
                 return -1
         else:
             if poll != 0:
-                click.echo(click.style(' Falló', fg='red'))
+                if verbose:
+                    click.echo(click.style(' Falló', fg='red'))
 
+                    print(p.stdout.read())
                 return -1
-            click.echo(click.style(' Ok', fg='green'))
+            if verbose:
+                click.echo(click.style(' Ok', fg='green'))
 
             return 0
 
@@ -60,6 +66,27 @@ def get_running_servers(docker_path, docker_image):
             container_data[nombre] = data
 
     return container_data
+
+
+def detener_contenedor(docker_path, nombre, verbose=True):
+    shellcmd = '{docker_path} rm -f {nombre}'.format(
+        docker_path=docker_path,
+        nombre=nombre
+    )
+    ejecutar_comando(shellcmd, verbose)
+
+
+def obtener_estado_contenedor(docker_path, imagen, nombre):
+    '''Comprueba si un contenedor ha sido iniciado'''
+    contenedores = get_running_servers(docker_path, imagen)
+    ha_sido_iniciado = False
+    for name in contenedores:
+        if name == nombre:
+            ha_sido_iniciado = True
+
+    return ha_sido_iniciado
+
+
 
 
 class Config(object):
@@ -94,13 +121,30 @@ def cli(config, port):
 @pass_config
 def start(config, document_root):
     '''Inicia el servidor'''
+
+    iniciado = obtener_estado_contenedor(
+        config.docker_path, config.docker_image, 'apds'+str(config.port)
+    )
+
+    if iniciado:
+        click.echo(click.style('Falló. ', fg='red'), nl=False)
+        click.echo(
+            'Ya hay un servidor ejecutándose en el puerto {}'.format(config.port)
+        )
+        exit(1)
+    else:
+        # Puede ser que hayan restos de servidores que han sido detenidos de
+        # forma anormal, por lo que se intentan eliminar explícitamente
+        detener_contenedor(config.docker_path, config.docker_image, False)
+
     click.echo('Iniciando servidor en puerto %s' % config.port, nl=False)
     droot_expanded = os.path.abspath(os.path.expanduser(document_root))
-    shellcmd = '{docker_path} run -d -p {port}:80 -v {document_root}:/var/www/html --name=apds{port} {docker_image}'.format(
+    shellcmd = '{docker_path} run -d -p {port}:80 -e DOCKER_USER="{username}" -v {document_root}:/var/www/html --name=apds{port} {docker_image}'.format(
         docker_path=config.docker_path,
         port=config.port,
         document_root=droot_expanded,
-        docker_image=config.docker_image
+        docker_image=config.docker_image,
+        username=os.environ.get('USERNAME')
     )
     ejecutar_comando(shellcmd)
 
