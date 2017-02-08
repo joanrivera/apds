@@ -192,15 +192,21 @@ def restart(config):
 #########
 
 @click.command()
+@click.option('--root', is_flag=True,
+        help=u'Ejecuta los comandos como root')
 @click.argument('comando', nargs=1)
 @pass_config
-def run(config, comando):
+def run(config, root, comando):
     '''Ejecuta un comando que esté disponible dentro del contenedor del servidor'''
     click.echo('Ejecutando: %s' % comando)
-    shellcmd = '{docker_path} exec -it apds{port} {comando}'.format(
+    username = 'root'
+    if not root:
+        username = os.environ.get('USERNAME')
+    shellcmd = '{docker_path} exec -it -u={username} apds{port} {comando}'.format(
         docker_path=config.docker_path,
         port=config.port,
-        comando=comando
+        comando=comando,
+        username=username
     )
     subprocess.call(shlex.split(shellcmd))
 
