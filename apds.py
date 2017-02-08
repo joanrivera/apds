@@ -223,7 +223,7 @@ def run(config, root, comando):
 @pass_config
 def logs(config, follow, clear):
     '''Muestra el log de errores de PHP'''
-    log_path = '/var/log/php_errors.log'
+    log_path = '/var/log/apache2/error.log'
     if clear:
         comando = 'echo "" > {}'.format(log_path)
         shellcmd = '{docker_path} exec -it apds{port} {comando}'.format(
