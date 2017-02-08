@@ -157,12 +157,18 @@ def start(config, document_root):
 @pass_config
 def stop(config):
     '''Detiene el servidor'''
-    click.echo('Deteniendo servidor', nl=False)
-    shellcmd = '{docker_path} rm -f apds{port}'.format(
-        docker_path=config.docker_path,
-        port=config.port
+    nombre_contenedor = 'apds'+str(config.port)
+    iniciado = obtener_estado_contenedor(
+        config.docker_path, config.docker_image, nombre_contenedor
     )
-    ejecutar_comando(shellcmd)
+    if not iniciado:
+        click.echo(click.style('Falló. ', fg='red'), nl=False)
+        click.echo(
+            'No hay un servidor usando el puerto {}'.format(config.port)
+        )
+        exit(1)
+    click.echo('Deteniendo servidor', nl=False)
+    detener_contenedor(config.docker_path, nombre_contenedor)
 
 
 #############
