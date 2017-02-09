@@ -199,6 +199,7 @@ def restart(config):
 def run(config, root, comando):
     '''Ejecuta un comando que esté disponible dentro del contenedor del servidor'''
     click.echo('Ejecutando: %s' % comando)
+    comando='bash -c \'{}\''.format(comando)
     username = 'root'
     if not root:
         username = os.environ.get('USERNAME')
