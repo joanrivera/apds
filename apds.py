@@ -226,12 +226,13 @@ def logs(config, follow, clear):
     '''Muestra el log de errores de PHP'''
     log_path = '/var/log/apache2/error.log'
     if clear:
-        comando = 'echo "" > {}'.format(log_path)
+        comando = 'bash -c "echo \'\' > {}"'.format(log_path)
         shellcmd = '{docker_path} exec -it apds{port} {comando}'.format(
             docker_path=config.docker_path,
             port=config.port,
             comando=comando
         )
+        subprocess.call(shellcmd, shell=True)
     else:
         follow = '-f' if follow == True else ''
         comando = 'bash -c "tail {} {} | log-colorizer"'.format(
