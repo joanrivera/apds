@@ -135,7 +135,7 @@ def start(config, document_root):
     else:
         # Puede ser que hayan restos de servidores que han sido detenidos de
         # forma anormal, por lo que se intentan eliminar explícitamente
-        detener_contenedor(config.docker_path, config.docker_image, False)
+        detener_contenedor(config.docker_path, 'apds'+str(config.port), False)
 
     click.echo('Iniciando servidor en puerto %s' % config.port, nl=False)
     droot_expanded = os.path.abspath(os.path.expanduser(document_root))
