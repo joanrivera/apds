@@ -219,7 +219,7 @@ def run(config, root, comando):
 @click.command()
 @click.option('--follow', '-f', is_flag=True,
         help=u'Muestra las novedades del log según vayan apareciendo')
-@click.option('--clear', '-c', is_flag=True,
+@click.option('--clear', is_flag=True,
         help=u'Elimina los contenidos del archivo de logs')
 @click.option('--no-color', is_flag=True,
         help=u'Muestra los logs sin colores')
