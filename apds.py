@@ -4,8 +4,10 @@ import click
 
 import os
 import subprocess
+import shutil
 import shlex
 import time
+import ConfigParser
 
 
 
@@ -90,10 +92,37 @@ def obtener_estado_contenedor(docker_path, imagen, nombre):
 
 
 class Config(object):
+
     def __init__(self):
-        self.port = '8080'
-        self.docker_path = '/usr/bin/docker'
-        self.docker_image = 'ccf/php:dev'
+        cfg = self.get_conf()
+        self.port = cfg.get('apds', 'default_port')
+        self.docker_path = cfg.get('apds', 'docker_path')
+        self.docker_image = cfg.get('apds', 'docker_image')
+
+
+    def get_conf(self):
+        user_ini_path = os.path.expanduser('~/.config/apds.ini')
+        if not os.path.isfile(user_ini_path):
+            cfg = self.get_default_cfg()
+            with open(user_ini_path, 'w') as configfile:
+                cfg.write(configfile)
+        else:
+            cfg = ConfigParser.RawConfigParser()
+            cfg.read(user_ini_path)
+
+        return cfg
+
+
+    def get_default_cfg(self):
+        cfg = ConfigParser.RawConfigParser()
+        cfg.add_section('apds')
+        cfg.set('apds', 'default_port', '8080')
+        cfg.set('apds', 'docker_image', 'apds:dev')
+        cfg.set('apds', 'docker_path', '/usr/bin/docker')
+
+        return cfg
+
+
 
 pass_config = click.make_pass_decorator(Config, ensure=True)
 
