@@ -221,8 +221,10 @@ def run(config, root, comando):
         help=u'Muestra las novedades del log según vayan apareciendo')
 @click.option('--clear', '-c', is_flag=True,
         help=u'Elimina los contenidos del archivo de logs')
+@click.option('--no-color', is_flag=True,
+        help=u'Muestra los logs sin colores')
 @pass_config
-def logs(config, follow, clear):
+def logs(config, follow, clear, no_color):
     '''Muestra el log de errores de PHP'''
     log_path = '/var/log/apache2/error.log'
     if clear:
@@ -235,8 +237,9 @@ def logs(config, follow, clear):
         subprocess.call(shellcmd, shell=True)
     else:
         follow = '-f' if follow == True else ''
-        comando = 'bash -c "tail {} {} | log-colorizer"'.format(
-            follow, log_path
+        colorizer = 'cat' if no_color == True else 'log-colorizer'
+        comando = 'bash -c "tail {} {} | {}"'.format(
+            follow, log_path, colorizer
         )
         shellcmd = '{docker_path} exec -it apds{port} {comando}'.format(
             docker_path=config.docker_path,
