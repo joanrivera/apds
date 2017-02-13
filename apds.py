@@ -208,6 +208,18 @@ def stop(config):
 @pass_config
 def restart(config):
     '''Reinicia el servidor'''
+
+    iniciado = obtener_estado_contenedor(
+        config.docker_path, config.docker_image, 'apds'+str(config.port)
+    )
+
+    if not iniciado:
+        click.echo(click.style('Falló. ', fg='red'), nl=False)
+        click.echo(
+            'No hay un servidor ejecutándose en el puerto {}'.format(config.port)
+        )
+        exit(1)
+
     click.echo('Reiniciando servidor', nl=False)
     shellcmd = '{docker_path} restart apds{port}'.format(
         docker_path=config.docker_path,
