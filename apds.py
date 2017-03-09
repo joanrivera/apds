@@ -128,12 +128,13 @@ pass_config = click.make_pass_decorator(Config, ensure=True)
 
 
 @click.group()
-@click.option('--port', '-p', type=click.INT, default='8080',
+@click.option('--port', '-p', type=click.INT,
         help='Puerto usado por el servidor')
 @pass_config
 def cli(config, port):
     '''Apache+PHP Development Server'''
-    config.port = port
+    if port:
+        config.port = port
 
 
 ###########
