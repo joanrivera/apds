@@ -171,11 +171,13 @@ def start(config, document_root):
         # forma anormal, por lo que se intentan eliminar explícitamente
         detener_contenedor(config.docker_path, 'apds'+str(config.port), False)
 
+    dir_maps_string = ' '.join(['-v \'{}\''.format(map) for map in config.dir_maps])
     click.echo('Iniciando servidor en puerto %s' % config.port, nl=False)
     droot_expanded = os.path.abspath(os.path.expanduser(document_root))
-    shellcmd = '{docker_path} run -d -p {port}:80 -e DOCKER_USER="{username}" -v {document_root}:/var/www/html --name=apds{port} {docker_image}'.format(
+    shellcmd = '{docker_path} run -d -p {port}:80 -e DOCKER_USER="{username}" -v {document_root}:/var/www/html {dir_maps} --name=apds{port} {docker_image}'.format(
         docker_path=config.docker_path,
         port=config.port,
+        dir_maps=dir_maps_string,
         document_root=droot_expanded,
         docker_image=config.docker_image,
         username=os.environ.get('USERNAME')
