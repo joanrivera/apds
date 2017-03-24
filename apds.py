@@ -7,7 +7,7 @@ import subprocess
 import shutil
 import shlex
 import time
-import ConfigParser
+import json
 
 
 
@@ -95,30 +95,34 @@ class Config(object):
 
     def __init__(self):
         cfg = self.get_conf()
-        self.port = cfg.get('apds', 'default_port')
-        self.docker_path = cfg.get('apds', 'docker_path')
-        self.docker_image = cfg.get('apds', 'docker_image')
+        self.port = cfg['default_port']
+        self.docker_path = cfg['docker_path']
+        self.docker_image = cfg['docker_image']
+        self.dir_maps = cfg['dir_maps']
 
 
     def get_conf(self):
-        user_ini_path = os.path.expanduser('~/.config/apds.ini')
+        user_ini_path = os.path.expanduser('~/.config/apds.json')
         if not os.path.isfile(user_ini_path):
             cfg = self.get_default_cfg()
             with open(user_ini_path, 'w') as configfile:
-                cfg.write(configfile)
+                jsondata = json.dumps(cfg, sort_keys=True,
+                    indent=4)
+                configfile.write(jsondata)
         else:
-            cfg = ConfigParser.RawConfigParser()
-            cfg.read(user_ini_path)
+            jsondata = open(user_ini_path).read()
+            cfg = json.loads(jsondata)
 
         return cfg
 
 
     def get_default_cfg(self):
-        cfg = ConfigParser.RawConfigParser()
-        cfg.add_section('apds')
-        cfg.set('apds', 'default_port', '8080')
-        cfg.set('apds', 'docker_image', 'apds:dev')
-        cfg.set('apds', 'docker_path', '/usr/bin/docker')
+        cfg = {
+            'default_port': '8080',
+            'docker_image': 'joanrivera/apds:dev',
+            'docker_path': '/usr/bin/docker',
+            'dir_maps': [],
+        }
 
         return cfg
 
