@@ -99,6 +99,8 @@ class Config(object):
         self.docker_path = cfg['docker_path']
         self.docker_image = cfg['docker_image']
         self.dir_maps = cfg['dir_maps']
+        self.start_cmds = cfg['start_cmds']
+        self.start_root_cmds = cfg['start_root_cmds']
 
 
     def get_conf(self):
@@ -122,6 +124,8 @@ class Config(object):
             'docker_image': 'joanrivera/apds:dev',
             'docker_path': '/usr/bin/docker',
             'dir_maps': [],
+            'start_root_cmds': [],
+            'start_cmds': [],
         }
 
         return cfg
@@ -183,6 +187,12 @@ def start(config, document_root):
         username=os.environ.get('USERNAME')
     )
     ejecutar_comando(shellcmd)
+
+    for cmd in config.start_cmds:
+        run_in_container(config, True, cmd)
+
+    for cmd in config.start_root_cmds:
+        run_in_container(config, True, cmd)
 
 
 ##########
@@ -247,6 +257,10 @@ def restart(config):
 def run(config, root, comando):
     '''Ejecuta un comando que esté disponible dentro del contenedor del servidor'''
     click.echo('Ejecutando: %s' % comando)
+    run_in_container(config, root, comando)
+
+
+def run_in_container(config, root, comando):
     comando='bash -c \'{}\''.format(comando)
     username = 'root'
     if not root:
