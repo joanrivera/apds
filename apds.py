@@ -156,8 +156,14 @@ def cli(config, port):
         default='.',
         help='Directorio donde se encuentran los ficheros que van a ser servidos'
 )
+@click.option(
+        '--server-droot', '-sdr',
+        type=click.Path(exists=True, file_okay=False),
+        default='.',
+        help='Subdirectorio que va a cumplir la función de raíz del sitio web'
+)
 @pass_config
-def start(config, document_root):
+def start(config, document_root, server_droot):
     '''Inicia el servidor'''
 
     iniciado = obtener_estado_contenedor(
@@ -178,13 +184,14 @@ def start(config, document_root):
     dir_maps_string = ' '.join(['-v \'{}\''.format(map) for map in config.dir_maps])
     click.echo('Iniciando servidor en puerto %s' % config.port, nl=False)
     droot_expanded = os.path.abspath(os.path.expanduser(document_root))
-    shellcmd = '{docker_path} run -d -p {port}:80 -e DOCKER_USER="{username}" -v {document_root}:/var/www/html {dir_maps} --name=apds{port} {docker_image}'.format(
+    shellcmd = '{docker_path} run -d -p {port}:80 -e DOCKER_USER="{username}" -e SERVER_DROOT="{server_droot}" -v {document_root}:/var/www/html {dir_maps} --name=apds{port} {docker_image}'.format(
         docker_path=config.docker_path,
         port=config.port,
         dir_maps=dir_maps_string,
         document_root=droot_expanded,
         docker_image=config.docker_image,
-        username=os.environ.get('USERNAME')
+        username=os.environ.get('USERNAME'),
+        server_droot=server_droot
     )
     ejecutar_comando(shellcmd)
 
