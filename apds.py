@@ -4,6 +4,7 @@ import click
 
 import os
 import subprocess
+import getpass
 import shutil
 import shlex
 import time
@@ -190,7 +191,7 @@ def start(config, document_root, server_droot):
         dir_maps=dir_maps_string,
         document_root=droot_expanded,
         docker_image=config.docker_image,
-        username=os.environ.get('USERNAME'),
+        username=getpass.getuser(),
         server_droot=server_droot
     )
     ejecutar_comando(shellcmd)
