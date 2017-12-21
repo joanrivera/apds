@@ -272,7 +272,7 @@ def run_in_container(config, root, comando):
     comando='bash -c \'{}\''.format(comando)
     username = 'root'
     if not root:
-        username = os.environ.get('USERNAME')
+        username = getpass.getuser()
     shellcmd = '{docker_path} exec -it -u={username} apds{port} {comando}'.format(
         docker_path=config.docker_path,
         port=config.port,
