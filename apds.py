@@ -185,7 +185,7 @@ def start(config, document_root, server_droot):
     dir_maps_string = ' '.join(['-v \'{}\''.format(map) for map in config.dir_maps])
     click.echo('Iniciando servidor en puerto %s' % config.port, nl=False)
     droot_expanded = os.path.abspath(os.path.expanduser(document_root))
-    shellcmd = '{docker_path} run -d -p {port}:80 -e DOCKER_USER="{username}" -e SERVER_DROOT="{server_droot}" -v {document_root}:/var/www/html {dir_maps} --name=apds{port} {docker_image}'.format(
+    shellcmd = '{docker_path} run -d -p {port}:80 -e DOCKER_USER="{username}" -e SERVER_DROOT="{server_droot}" -v {document_root}:/var/www/html {dir_maps} --name=apds{port} --hostname=apds {docker_image}'.format(
         docker_path=config.docker_path,
         port=config.port,
         dir_maps=dir_maps_string,
