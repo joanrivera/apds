@@ -336,12 +336,13 @@ def list_servers(config):
         puertos, directorios = contenedores[nombre]
         if nombre.startswith('apds'):
             puertos = puertos.split(',')
+            puerto_apds = ''
             for puerto in puertos:
                 puerto = puerto.strip()
                 if puerto.endswith('->80/tcp'):
                     puerto = puerto.split('->80/tcp')[0]
-                    puerto = puerto.split(':')[1]
-            click.echo('{:10}{}'.format(puerto, directorios))
+                    puerto_apds = puerto.split(':')[1]
+            click.echo('{:10}{}'.format(puerto_apds, directorios))
 
 
 

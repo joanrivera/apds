@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='Apache+PHP Develoment Server',
-    version='1.3.3',
+    version='1.4',
     py_modules=['apds'],
     install_requires=[
         'Click',
